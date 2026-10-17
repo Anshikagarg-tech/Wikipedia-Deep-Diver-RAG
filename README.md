@@ -22,7 +22,9 @@ A fast, elegant Wikipedia research companion. Search any topic and explore relev
 
 
 
-> _Add a screenshot of the app here: save it as `photo.png` and uncomment the block above._
+><p align="center">
+  <img src="photo.png" alt="DeepDriver AI screenshot" width="90%" />
+</p>
 
 ---
 
