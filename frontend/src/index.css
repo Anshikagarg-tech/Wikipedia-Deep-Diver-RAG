@@ -1,14 +1,142 @@
 @import "tailwindcss";
 
+/* ---------- Design tokens ---------- */
+:root {
+  --bg: #f7f4ee;
+  --surface: #fffefb;
+  --ink: #26231d;
+  --muted: #6b645a;
+  --faint: #9a9184;
+  --line: #e4dccf;
+  --accent: #782e3b;
+  --accent-strong: #5c202c;
+  --accent-soft: #f3e6e4;
+  --on-accent: #ffffff;
+  --shadow: 0 1px 2px rgb(38 35 29 / 0.04), 0 8px 24px -12px rgb(38 35 29 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(38 35 29 / 0.05), 0 18px 40px -16px rgb(120 46 59 / 0.28);
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #14110f;
+  --surface: #1c1815;
+  --ink: #eee8dd;
+  --muted: #a69e91;
+  --faint: #7d756a;
+  --line: #2f2a25;
+  --accent: #e0909d;
+  --accent-strong: #f0b3bc;
+  --accent-soft: #2b1b1f;
+  --on-accent: #1a0e11;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.5);
+  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.3), 0 18px 40px -16px rgb(224 144 157 / 0.25);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+  --font-serif: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* ---------- Base ---------- */
 * {
   box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  font-family: Arial, Helvetica, sans-serif;
-  background: #020617;
-  color: #f8fafc;
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Soft paper-like glow behind the hero */
+.hero-glow {
+  background:
+    radial-gradient(60% 50% at 20% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%),
+    radial-gradient(50% 40% at 90% 10%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 70%);
+}
+
+/* ---------- Motion ---------- */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.fade-up {
+  opacity: 0;
+  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--line) 70%, transparent);
+}
+
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--surface) 70%, transparent), transparent);
+  animation: shimmer 1.4s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .fade-up {
+    animation: none;
+    opacity: 1;
+  }
+  .shimmer::after {
+    animation: none;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+  }
 }

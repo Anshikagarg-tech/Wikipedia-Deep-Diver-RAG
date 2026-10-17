@@ -1,32 +1,44 @@
-
-import { useState } from "react";
-import { Search, ExternalLink, LoaderCircle, BookOpen } from "lucide-react";
+import { useRef, useState } from "react";
+import { BookOpen, CircleAlert, Compass } from "lucide-react";
 import api from "./api";
+import SearchForm from "./components/SearchForm";
+import ResultCard from "./components/ResultCard";
+import ResultSkeleton from "./components/ResultSkeleton";
+import ThemeToggle from "./components/ThemeToggle";
+
+const SUGGESTIONS = [
+  "Quantum entanglement",
+  "Roman aqueducts",
+  "Mycorrhizal networks",
+  "The Silk Road",
+];
 
 function App() {
   const [question, setQuestion] = useState("");
+  const [submitted, setSubmitted] = useState("");
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const resultsRef = useRef(null);
 
-  async function askQuestion(event) {
-    event.preventDefault();
-
-    const query = question.trim();
+  async function runSearch(text) {
+    const query = text.trim();
     if (!query || loading) return;
 
     setLoading(true);
     setError("");
     setArticles([]);
+    setSubmitted(query);
+
+    // Bring results into view (helpful on small screens)
+    requestAnimationFrame(() =>
+      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+    );
 
     try {
-      const response = await api.get("/api/wiki", {
-        params: { q: query },
-      });
-
+      const response = await api.get("/api/wiki", { params: { q: query } });
       const results = response.data.articles || [];
       setArticles(results);
-
       if (results.length === 0) {
         setError("No articles found. Try a different search.");
       }
@@ -38,129 +50,133 @@ function App() {
     }
   }
 
+  function handleSubmit(event) {
+    event.preventDefault();
+    runSearch(question);
+  }
+
+  function handleSuggestion(text) {
+    setQuestion(text);
+    runSearch(text);
+  }
+
+  const showResults = loading || error || articles.length > 0;
+
   return (
-    <div className="min-h-screen bg-[#F8F6F1] text-[#292720]">
-      <header className="border-b border-[#E7E0D6]">
-        <div className="mx-auto flex max-w-6xl items-center px-6 py-5">
-          <a href="/" className="font-serif text-2xl font-semibold tracking-tight">
-            DeepDriver<span className="text-[#782E3B]"> AI</span>
+    <div className="flex min-h-screen flex-col bg-bg text-ink">
+      {/* Header */}
+      <header className="sticky top-0 z-20 border-b border-line/70 bg-bg/80 pt-[env(safe-area-inset-top)] backdrop-blur-md">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3 sm:px-8 sm:py-4">
+          <a href="/" className="flex items-center gap-2.5" aria-label="DeepDriver AI home">
+            <span className="inline-flex size-9 items-center justify-center rounded-full bg-accent text-on-accent">
+              <Compass size={18} strokeWidth={1.75} />
+            </span>
+            <span className="font-serif text-xl font-semibold tracking-tight sm:text-2xl">
+              DeepDriver<span className="text-accent"> AI</span>
+            </span>
           </a>
+          <ThemeToggle />
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6">
-        <section className="mx-auto max-w-4xl pb-16 pt-20 sm:pt-28">
-          <h1 className="max-w-3xl font-serif text-5xl font-medium leading-[1.12] tracking-tight sm:text-7xl">
-            Find the answers.
-            <span className="block text-[#782E3B]">
-              Follow your curiosity.
-            </span>
-          </h1>
+      <main className="flex-1">
+        {/* Hero */}
+        <div className="hero-glow">
+          <section className="mx-auto max-w-3xl px-5 pb-12 pt-14 sm:px-8 sm:pb-16 sm:pt-24">
+            <p className="fade-up text-xs font-medium uppercase tracking-[0.22em] text-accent">
+              Wikipedia · Research companion
+            </p>
 
-          <p className="mt-6 max-w-xl text-base leading-7 text-[#777168]">
-            Search a topic and explore relevant Wikipedia articles, summaries,
-            and original sources.
-          </p>
+            <h1
+              className="fade-up mt-5 font-serif text-[clamp(2.4rem,8vw,4.75rem)] font-medium leading-[1.06] tracking-tight"
+              style={{ animationDelay: "80ms" }}
+            >
+              Find the answers.
+              <span className="block italic text-accent">Follow your curiosity.</span>
+            </h1>
 
-          <form
-            onSubmit={askQuestion}
-            className="mt-10 border border-[#DCD4C9] bg-[#FFFDF9] transition-colors focus-within:border-[#782E3B]"
-          >
-            <label htmlFor="question" className="sr-only">
-              Search a topic
-            </label>
+            <p
+              className="fade-up mt-6 max-w-xl text-base leading-7 text-muted sm:text-lg sm:leading-8"
+              style={{ animationDelay: "160ms" }}
+            >
+              Search a topic and explore relevant Wikipedia articles, summaries,
+              and original sources.
+            </p>
 
-            <textarea
-              id="question"
-              value={question}
-              onChange={(event) => setQuestion(event.target.value)}
-              onKeyDown={(event) => {
-                if (
-                  event.key === "Enter" &&
-                  !event.shiftKey &&
-                  !event.nativeEvent.isComposing
-                ) {
-                  event.preventDefault();
-                  event.currentTarget.form.requestSubmit();
-                }
-              }}
-              rows={2}
-              placeholder="What would you like to explore?"
-              className="w-full resize-y bg-transparent px-5 py-5 text-base leading-7 outline-none placeholder:text-[#A39A8E] sm:px-6"
-            />
+            <div className="fade-up mt-9 sm:mt-11" style={{ animationDelay: "240ms" }}>
+              <SearchForm
+                value={question}
+                onChange={setQuestion}
+                onSubmit={handleSubmit}
+                loading={loading}
+              />
 
-            <div className="flex items-center justify-between gap-4 border-t border-[#EEE8DF] px-4 py-3 sm:px-6">
-              <span className="text-xs text-[#93897D]">
-                Search Wikipedia
-              </span>
-
-              <button
-                type="submit"
-                disabled={!question.trim() || loading}
-                className="inline-flex items-center gap-2 bg-[#782E3B] px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-[#5C202C] disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {loading ? (
-                  <LoaderCircle size={17} className="animate-spin" />
-                ) : (
-                  <Search size={17} />
-                )}
-                {loading ? "Searching..." : "Search"}
-              </button>
+              <div className="mt-5 flex flex-wrap items-center gap-2">
+                <span className="mr-1 text-xs text-faint">Try</span>
+                {SUGGESTIONS.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => handleSuggestion(s)}
+                    disabled={loading}
+                    className="min-h-9 rounded-full border border-line bg-surface/60 px-3.5 text-sm text-muted transition-colors hover:border-accent hover:bg-accent-soft hover:text-accent disabled:opacity-50"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
             </div>
-          </form>
-        </section>
+          </section>
+        </div>
 
-        {(loading || error || articles.length > 0) && (
-          <section className="mx-auto max-w-4xl border-t border-[#E3DDD3] pb-20 pt-8">
-            <div className="mb-6 flex items-center gap-2">
-              <BookOpen size={19} className="text-[#782E3B]" />
-              <h2 className="font-serif text-2xl font-medium">
-                {loading ? "Searching articles" : "Search results"}
+        {/* Results */}
+        {showResults && (
+          <section
+            ref={resultsRef}
+            aria-live="polite"
+            aria-busy={loading}
+            className="mx-auto max-w-3xl scroll-mt-24 px-5 pb-20 sm:px-8"
+          >
+            <div className="mb-6 flex items-center gap-3 border-t border-line pt-8">
+              <BookOpen size={19} className="shrink-0 text-accent" />
+              <h2 className="min-w-0 font-serif text-xl font-medium sm:text-2xl">
+                {loading ? (
+                  "Searching articles…"
+                ) : articles.length > 0 ? (
+                  <>
+                    {articles.length} {articles.length === 1 ? "article" : "articles"} for{" "}
+                    <span className="italic text-accent [overflow-wrap:anywhere]">
+                      “{submitted}”
+                    </span>
+                  </>
+                ) : (
+                  "Search results"
+                )}
               </h2>
             </div>
 
             {loading && (
-              <p className="text-sm text-[#777168]">
-                Finding relevant Wikipedia articles...
-              </p>
+              <div className="space-y-4">
+                {[0, 1, 2].map((i) => (
+                  <ResultSkeleton key={i} />
+                ))}
+              </div>
             )}
 
-            {error && (
-              <p
+            {error && !loading && (
+              <div
                 role="alert"
-                className="border border-[#D8BDB8] bg-[#FBF1ED] p-4 text-sm leading-6 text-[#782E3B]"
+                className="flex items-start gap-3 rounded-2xl border border-accent/30 bg-accent-soft p-4 text-sm leading-6 text-accent sm:p-5"
               >
-                {error}
-              </p>
+                <CircleAlert size={18} className="mt-0.5 shrink-0" />
+                <p>{error}</p>
+              </div>
             )}
 
             {!loading && articles.length > 0 && (
-              <div className="divide-y divide-[#E3DDD3]">
-                {articles.map((article) => (
-                  <article
-                    key={article.url || article.title}
-                    className="py-6"
-                  >
-                    <h3 className="font-serif text-xl font-semibold text-[#35151D]">
-                      {article.title}
-                    </h3>
-
-                    <p className="mt-3 whitespace-pre-line text-sm leading-7 text-[#716A60]">
-                      {article.summary}
-                    </p>
-
-                    {article.url && (
-                      <a
-                        href={article.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[#782E3B] hover:text-[#5C202C]"
-                      >
-                        Read original article
-                        <ExternalLink size={14} />
-                      </a>
-                    )}
-                  </article>
+              <div className="space-y-4 sm:space-y-5">
+                {articles.map((article, i) => (
+                  <ResultCard key={article.url || article.title} article={article} index={i} />
                 ))}
               </div>
             )}
@@ -168,9 +184,22 @@ function App() {
         )}
       </main>
 
-      <footer className="border-t border-[#E7E0D6] px-6 py-5">
-        <div className="mx-auto max-w-6xl text-xs text-[#93897D]">
-          DeepDriver AI
+      {/* Footer */}
+      <footer className="border-t border-line pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5">
+        <div className="mx-auto flex max-w-5xl flex-col gap-2 px-5 text-xs text-faint sm:flex-row sm:items-center sm:justify-between sm:px-8">
+          <span className="font-serif text-sm text-muted">DeepDriver AI</span>
+          <span>
+            Content from{" "}
+            <a
+              href="https://www.wikipedia.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-accent"
+            >
+              Wikipedia
+            </a>
+            , available under CC BY-SA.
+          </span>
         </div>
       </footer>
     </div>
