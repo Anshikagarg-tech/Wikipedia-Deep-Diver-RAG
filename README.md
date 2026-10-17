@@ -20,14 +20,9 @@ A fast, elegant Wikipedia research companion. Search any topic and explore relev
 
 ## 📸 Preview
 
-<!-- Add screenshots to a /docs folder and uncomment:
-<p align="center">
-  <img src="docs/screenshot-light.png" width="48%" alt="Light theme" />
-  <img src="docs/screenshot-dark.png" width="48%" alt="Dark theme" />
-</p>
--->
 
-> _Add a screenshot of the app here: save it as `docs/screenshot-light.png` and uncomment the block above._
+
+> _Add a screenshot of the app here: save it as `photo.png` and uncomment the block above._
 
 ---
 
